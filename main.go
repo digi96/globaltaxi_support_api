@@ -25,6 +25,8 @@ var (
 	ContactRoutes       routes.ContactRoutes
 	RideOrderController controllers.RideOrderController
 	RideOrderRoutes     routes.RideOrderRoutes
+	PayloadController   controllers.PayloadController
+	PayloadRoutes       routes.PayloadRoutes
 )
 
 func init() {
@@ -49,6 +51,9 @@ func init() {
 
 	RideOrderController = *controllers.NewRideOrderController(dbQueries, ctx)
 	RideOrderRoutes = routes.NewRouteRideOrder(RideOrderController)
+
+	PayloadController = *controllers.NewPayloadController(dbQueries, ctx)
+	PayloadRoutes = routes.NewRoutePayload(PayloadController)
 
 	server = gin.Default()
 }
@@ -82,7 +87,8 @@ func main() {
 	})
 
 	ContactRoutes.ContactRoute(router)
-	RideOrderRoutes.RideOrderRoutes(router)
+	RideOrderRoutes.RideOrderRoute(router)
+	PayloadRoutes.PayloadRoute(router)
 
 	server.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})

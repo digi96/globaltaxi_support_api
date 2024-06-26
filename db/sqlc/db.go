@@ -30,6 +30,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createOrderStmt, err = db.PrepareContext(ctx, createOrder); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateOrder: %w", err)
 	}
+	if q.createPayloadStmt, err = db.PrepareContext(ctx, createPayload); err != nil {
+		return nil, fmt.Errorf("error preparing query CreatePayload: %w", err)
+	}
 	if q.deleteContactStmt, err = db.PrepareContext(ctx, deleteContact); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteContact: %w", err)
 	}
@@ -42,17 +45,26 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getOrderByIdStmt, err = db.PrepareContext(ctx, getOrderById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetOrderById: %w", err)
 	}
+	if q.getPaylodByIdStmt, err = db.PrepareContext(ctx, getPaylodById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPaylodById: %w", err)
+	}
 	if q.listContactsStmt, err = db.PrepareContext(ctx, listContacts); err != nil {
 		return nil, fmt.Errorf("error preparing query ListContacts: %w", err)
 	}
 	if q.listOrdersStmt, err = db.PrepareContext(ctx, listOrders); err != nil {
 		return nil, fmt.Errorf("error preparing query ListOrders: %w", err)
 	}
+	if q.listUndoPayloadsStmt, err = db.PrepareContext(ctx, listUndoPayloads); err != nil {
+		return nil, fmt.Errorf("error preparing query ListUndoPayloads: %w", err)
+	}
 	if q.updateContactStmt, err = db.PrepareContext(ctx, updateContact); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateContact: %w", err)
 	}
 	if q.updateOrderStmt, err = db.PrepareContext(ctx, updateOrder); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateOrder: %w", err)
+	}
+	if q.updatePayloadStmt, err = db.PrepareContext(ctx, updatePayload); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdatePayload: %w", err)
 	}
 	return &q, nil
 }
@@ -67,6 +79,11 @@ func (q *Queries) Close() error {
 	if q.createOrderStmt != nil {
 		if cerr := q.createOrderStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createOrderStmt: %w", cerr)
+		}
+	}
+	if q.createPayloadStmt != nil {
+		if cerr := q.createPayloadStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createPayloadStmt: %w", cerr)
 		}
 	}
 	if q.deleteContactStmt != nil {
@@ -89,6 +106,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getOrderByIdStmt: %w", cerr)
 		}
 	}
+	if q.getPaylodByIdStmt != nil {
+		if cerr := q.getPaylodByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPaylodByIdStmt: %w", cerr)
+		}
+	}
 	if q.listContactsStmt != nil {
 		if cerr := q.listContactsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listContactsStmt: %w", cerr)
@@ -99,6 +121,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listOrdersStmt: %w", cerr)
 		}
 	}
+	if q.listUndoPayloadsStmt != nil {
+		if cerr := q.listUndoPayloadsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listUndoPayloadsStmt: %w", cerr)
+		}
+	}
 	if q.updateContactStmt != nil {
 		if cerr := q.updateContactStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateContactStmt: %w", cerr)
@@ -107,6 +134,11 @@ func (q *Queries) Close() error {
 	if q.updateOrderStmt != nil {
 		if cerr := q.updateOrderStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateOrderStmt: %w", cerr)
+		}
+	}
+	if q.updatePayloadStmt != nil {
+		if cerr := q.updatePayloadStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updatePayloadStmt: %w", cerr)
 		}
 	}
 	return err
@@ -146,33 +178,41 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                 DBTX
-	tx                 *sql.Tx
-	createContactStmt  *sql.Stmt
-	createOrderStmt    *sql.Stmt
-	deleteContactStmt  *sql.Stmt
-	deleteOrderStmt    *sql.Stmt
-	getContactByIdStmt *sql.Stmt
-	getOrderByIdStmt   *sql.Stmt
-	listContactsStmt   *sql.Stmt
-	listOrdersStmt     *sql.Stmt
-	updateContactStmt  *sql.Stmt
-	updateOrderStmt    *sql.Stmt
+	db                   DBTX
+	tx                   *sql.Tx
+	createContactStmt    *sql.Stmt
+	createOrderStmt      *sql.Stmt
+	createPayloadStmt    *sql.Stmt
+	deleteContactStmt    *sql.Stmt
+	deleteOrderStmt      *sql.Stmt
+	getContactByIdStmt   *sql.Stmt
+	getOrderByIdStmt     *sql.Stmt
+	getPaylodByIdStmt    *sql.Stmt
+	listContactsStmt     *sql.Stmt
+	listOrdersStmt       *sql.Stmt
+	listUndoPayloadsStmt *sql.Stmt
+	updateContactStmt    *sql.Stmt
+	updateOrderStmt      *sql.Stmt
+	updatePayloadStmt    *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                 tx,
-		tx:                 tx,
-		createContactStmt:  q.createContactStmt,
-		createOrderStmt:    q.createOrderStmt,
-		deleteContactStmt:  q.deleteContactStmt,
-		deleteOrderStmt:    q.deleteOrderStmt,
-		getContactByIdStmt: q.getContactByIdStmt,
-		getOrderByIdStmt:   q.getOrderByIdStmt,
-		listContactsStmt:   q.listContactsStmt,
-		listOrdersStmt:     q.listOrdersStmt,
-		updateContactStmt:  q.updateContactStmt,
-		updateOrderStmt:    q.updateOrderStmt,
+		db:                   tx,
+		tx:                   tx,
+		createContactStmt:    q.createContactStmt,
+		createOrderStmt:      q.createOrderStmt,
+		createPayloadStmt:    q.createPayloadStmt,
+		deleteContactStmt:    q.deleteContactStmt,
+		deleteOrderStmt:      q.deleteOrderStmt,
+		getContactByIdStmt:   q.getContactByIdStmt,
+		getOrderByIdStmt:     q.getOrderByIdStmt,
+		getPaylodByIdStmt:    q.getPaylodByIdStmt,
+		listContactsStmt:     q.listContactsStmt,
+		listOrdersStmt:       q.listOrdersStmt,
+		listUndoPayloadsStmt: q.listUndoPayloadsStmt,
+		updateContactStmt:    q.updateContactStmt,
+		updateOrderStmt:      q.updateOrderStmt,
+		updatePayloadStmt:    q.updatePayloadStmt,
 	}
 }

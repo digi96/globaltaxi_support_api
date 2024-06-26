@@ -21,6 +21,13 @@ type Contact struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type Payload struct {
+	PayloadID int32     `json:"payload_id"`
+	Body      string    `json:"body"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Rideorder struct {
 	RideorderID int32        `json:"rideorder_id"`
 	ContactID   uuid.UUID    `json:"contact_id"`

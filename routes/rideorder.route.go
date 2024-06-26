@@ -14,7 +14,7 @@ func NewRouteRideOrder(rideOrderController controllers.RideOrderController) Ride
 	return RideOrderRoutes{rideOrderController}
 }
 
-func (ror *RideOrderRoutes) RideOrderRoutes(rg *gin.RouterGroup) {
+func (ror *RideOrderRoutes) RideOrderRoute(rg *gin.RouterGroup) {
 
 	router := rg.Group("rideorders")
 	router.POST("/", ror.rideOrderController.CreatRideOrder)
